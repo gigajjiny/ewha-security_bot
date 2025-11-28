@@ -20,13 +20,13 @@ class SecurityConfig:
     file_cache_size: int = 256
 
     # SQLite
-    sqlite_path: str = " "
+    sqlite_path: str = "security_logs.db"
 
     # RabbitMQ
-    rabbitmq_url: str = " "
+    rabbitmq_url: str = "amqp://guest:guest@localhost/"
 
     # ClamAV (clamd)
-    clamav_host: str = " "
+    clamav_host: str = "127.0.0.1"
     clamav_port: int = 3310
 
     # YARA

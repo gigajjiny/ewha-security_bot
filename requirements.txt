@@ -1,4 +1,7 @@
-discord.py
-asyncio
-pytz
+discord.py==2.4.0
 python-dotenv
+aiosqlite
+aio_pika
+aiohttp
+clamd
+yara-python
