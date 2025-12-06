@@ -60,9 +60,9 @@ def create_welcome_embed():
         color=0xffc2ef
     )
     embed.set_author(name="🔒PoliteCat Discord Bot")
-    embed.add_field(name="악성파일 탐지", value="첨부된 파일이 악성 프로그램을 포함하는지 검사하고 자동으로 차단합니다", inline=True)
-    embed.add_field(name="악성 URL 탐지", value="업로드 된 url이 안전한지 검사합니다", inline=True)
-    embed.add_field(name="블랙리스트 관리", value="멤버들이 도배성 메시지를 보내거나 위험한 행동을 할 경우, 블랙리스트 차단 기능을 제공합니다", inline=True)
+    embed.add_field(name="🛡️ 악성파일 탐지", value="첨부된 파일이 악성 프로그램을 포함하는지 검사하고 자동으로 차단합니다", inline=True)
+    embed.add_field(name="🔗 악성 URL 탐지", value="업로드 된 url이 안전한지 검사합니다", inline=True)
+    embed.add_field(name="⛔ 블랙리스트 관리", value="멤버들이 도배성 메시지를 보내거나 위험한 행동을 할 경우, 블랙리스트 차단 기능을 제공합니다", inline=True)
     return embed
 
 # ============================
@@ -136,4 +136,5 @@ async def hello(interaction: discord.Interaction):
 # 실행
 # ============================
 bot.run(TOKEN)
+
 
