@@ -65,6 +65,28 @@ def create_welcome_embed():
     embed.add_field(name="⛔ 블랙리스트 관리", value="멤버들이 도배성 메시지를 보내거나 위험한 행동을 할 경우, 블랙리스트 차단 기능을 제공합니다", inline=True)
     return embed
 
+# ===========================
+# 도움말 메시지
+# ===========================
+class HelpButtons(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    # 1) 악성파일 탐지 버튼
+    @discord.ui.button(label="악성파일 탐지", style=discord.ButtonStyle.primary)
+    async def malware_scan(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message("clamAV, YARA 등 다양한 백신API를 활용하여 디스코드에 첨부된 파일이 안전한지 탐지합니다. \n 악성파일이 탐지되었다면 경고 안내 메세지를 출력합니다.", ephemeral=True)
+
+    # 2) 악성 URL 탐지 버튼
+    @discord.ui.button(label="악성 URL 탐지", style=discord.ButtonStyle.success)
+    async def url_scan(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message("채팅창에 url 링크를 업로드 할 경우, 해당 링크를 스캔하여 악성 url인지 확인하고 \n 위험할 경우 해당 링크에 대한 경고 메세지를 출력합니다.", ephemeral=True)
+
+    # 3) 블랙리스트 기능 버튼
+    @discord.ui.button(label="블랙리스트 기능", style=discord.ButtonStyle.secondary)
+    async def blacklist(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message("멤버 블랙리스트를 관리할 수 있습니다. \n 채팅창에 도배성 메세지를 입력할 경우 채팅 속도가 빠르다는 경고 메세지를 출력합니다. ", ephemeral=True)
+
 # ============================
 # Events
 # ============================
@@ -124,15 +146,30 @@ async def on_guild_join(guild):
         print(f"[경고] {guild.name} 서버에서 보낼 채널을 찾을 수 없음.")
 
 # ------------------------------------
-# 슬래시 명령어 /hello -> 서버 초대와 동일한 메시지 출력
+# /hello -> 서버 초대와 동일한 메시지 출력
 # ------------------------------------
 @bot.tree.command(name="hello", description="PoliteCat 초대 메시지를 출력")
 async def hello(interaction: discord.Interaction):
     embed = create_welcome_embed()
     await interaction.response.send_message(embed=embed)
 
+# ------------------------------------
+# /help -> 도움말 메시지 출력
+# ------------------------------------
+@bot.tree.command(name="help", description="PoliceCat 도움말")
+async def help_cmd(interaction: discord.Interaction):
+
+    embed = discord.Embed(
+        title="PoliceCat 도움말",
+        description="PoliceCat의 주요 기능에 대해 설명드릴게요!",
+        color=0xffc2ef
+    )
+    embed.set_author(name="🔒PoliteCat Discord Bot")
+
+    await interaction.response.send_message(embed=embed, view=HelpButtons())
 
 # ============================
 # 실행
 # ============================
 bot.run(TOKEN)
+
