@@ -55,8 +55,8 @@ def debug_print(*args):
 # ============================
 def create_welcome_embed():
     embed = discord.Embed(
-        title="PoliteCat 봇 사용을 환영합니다!",
-        description="안녕하세요. PoliteCat 디스코드 보안 봇입니다. 다양한 도움말은 슬래시 명령어를 사용해주세요!",
+        title="PoliceCat 봇 사용을 환영합니다!",
+        description="안녕하세요. PoliceCat 디스코드 보안 봇입니다. 다양한 도움말은 슬래시 명령어를 사용해주세요!",
         color=0xffc2ef
     )
     embed.set_author(name="🔒PoliteCat Discord Bot")
@@ -123,10 +123,6 @@ async def on_guild_join(guild):
     else:
         print(f"[경고] {guild.name} 서버에서 보낼 채널을 찾을 수 없음.")
 
-@bot.tree.command(name="ping", description="Ping test")
-async def ping(interaction: discord.Interaction):
-    await interaction.response.send_message("pong!")
-
 # ------------------------------------
 # 슬래시 명령어 /hello -> 서버 초대와 동일한 메시지 출력
 # ------------------------------------
@@ -140,7 +136,3 @@ async def hello(interaction: discord.Interaction):
 # 실행
 # ============================
 bot.run(TOKEN)
-
-
-
-
