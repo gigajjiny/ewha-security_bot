@@ -12,11 +12,7 @@ from security.yara_client import YaraClient
 
 load_dotenv()
 
-cfg = SecurityConfig(
-    enable_clamav=True,
-    enable_yara=True,
-    enable_rabbitmq=True,
-)
+cfg = SecurityConfig()
 
 clamav = ClamAVClient(cfg.clamav_host, cfg.clamav_port) if cfg.enable_clamav else None
 yara_client = YaraClient(cfg.yara_rules_path) if cfg.enable_yara else None
