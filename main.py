@@ -125,7 +125,7 @@ async def on_guild_join(guild):
 
 @bot.tree.command(name="ping", description="Ping test")
 async def ping(interaction: discord.Interaction):
-    await interaction.response.send_message("pong")
+    await interaction.response.send_message("pong!")
 
 # ------------------------------------
 # 슬래시 명령어 /hello -> 서버 초대와 동일한 메시지 출력
@@ -140,6 +140,7 @@ async def hello(interaction: discord.Interaction):
 # 실행
 # ============================
 bot.run(TOKEN)
+
 
 
 
