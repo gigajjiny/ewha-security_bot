@@ -170,11 +170,12 @@ async def help_cmd(interaction: discord.Interaction):
 
 @bot.tree.command(name="ping", description="Ping test")
 async def ping(interaction: discord.Interaction):
-    await interaction.response.send_message("pong")
+    await interaction.response.send_message("pong!")
 
 # ============================
 # 실행
 # ============================
 bot.run(TOKEN)
+
 
 
