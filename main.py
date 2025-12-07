@@ -96,7 +96,7 @@ async def on_ready():
     guild = discord.Object(id=GUILD_ID)
 
     # 1) 기존 명령어 초기화
-    await bot.tree.clear_commands(guild=guild)
+    bot.tree.clear_commands(guild=guild)
 
     # 2) 명령어 다시 등록
     @bot.tree.command(name="hello", description="PoliteCat 초대 메시지를 출력")
@@ -169,6 +169,7 @@ async def on_guild_join(guild):
 # 실행
 # ============================
 bot.run(TOKEN)
+
 
 
 
