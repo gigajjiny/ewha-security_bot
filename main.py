@@ -10,6 +10,7 @@ import os
 from security.config import SecurityConfig
 from security.service import SecurityService
 
+GUILD_ID = 1416632329098760275
 
 # ============================
 # 환경변수 로딩
@@ -92,7 +93,7 @@ class HelpButtons(discord.ui.View):
 # ============================
 @bot.event
 async def on_ready():
-    await bot.tree.sync() 
+    await bot.tree.sync(guild=discord.Object(id=GUILD_ID)) 
     print(f"[INFO] Logged in as {bot.user} (ID: {bot.user.id})")
 
 
@@ -176,6 +177,7 @@ async def ping(interaction: discord.Interaction):
 # 실행
 # ============================
 bot.run(TOKEN)
+
 
 
 
