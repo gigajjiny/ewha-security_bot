@@ -92,7 +92,6 @@ class HelpButtons(discord.ui.View):
 @bot.event
 async def on_ready():
     await bot.tree.sync()
-    print(f"[INFO] Slash commands synced for guild {guild.id}")
     print(f"[INFO] Logged in as {bot.user} (ID: {bot.user.id})")
 
 @bot.event
@@ -175,6 +174,7 @@ async def testping(interaction: discord.Interaction):
 # 실행
 # ============================
 bot.run(TOKEN)
+
 
 
 
