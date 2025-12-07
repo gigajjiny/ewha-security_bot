@@ -10,8 +10,6 @@ import os
 from security.config import SecurityConfig
 from security.service import SecurityService
 
-GUILD_ID = 1416632329098760275
-
 # ============================
 # 환경변수 로딩
 # ============================
@@ -93,26 +91,7 @@ class HelpButtons(discord.ui.View):
 # ============================
 @bot.event
 async def on_ready():
-    guild = discord.Object(id=GUILD_ID)
-
-    # 1) 기존 명령어 초기화
-    bot.tree.clear_commands(guild=guild)
-
-    # 2) 명령어 다시 등록
-    @bot.tree.command(name="hello", description="PoliteCat 초대 메시지를 출력")
-    async def hello(interaction: discord.Interaction):
-        await interaction.response.send_message("Hello from PoliceCat!")
-
-    @bot.tree.command(name="help", description="PoliceCat 도움말")
-    async def help_cmd(interaction: discord.Interaction):
-        await interaction.response.send_message("Help message!", ephemeral=True)
-
-    @bot.tree.command(name="test-ping", description="Ping test")
-    async def test_ping(interaction: discord.Interaction):
-        await interaction.response.send_message("test-pong!")
-
-    # 3) guild 단위로 sync
-    await bot.tree.sync(guild=guild)
+    await bot.tree.sync()
     print(f"[INFO] Slash commands synced for guild {guild.id}")
     print(f"[INFO] Logged in as {bot.user} (ID: {bot.user.id})")
 
@@ -165,10 +144,38 @@ async def on_guild_join(guild):
     else:
         print(f"[경고] {guild.name} 서버에서 보낼 채널을 찾을 수 없음.")
 
+# ------------------------------------
+# /hello -> 서버 초대와 동일한 메시지 출력
+# ------------------------------------
+@bot.tree.command(name="hello", description="PoliteCat 초대 메시지를 출력")
+async def hello(interaction: discord.Interaction):
+    embed = create_welcome_embed()
+    await interaction.response.send_message(embed=embed)
+
+# ------------------------------------
+# /help -> 도움말 메시지 출력
+# ------------------------------------
+@bot.tree.command(name="help", description="PoliceCat 도움말")
+async def help_cmd(interaction: discord.Interaction):
+
+    embed = discord.Embed(
+        title="PoliceCat 도움말",
+        description="PoliceCat의 주요 기능에 대해 설명드릴게요!",
+        color=0xffc2ef
+    )
+    embed.set_author(name="🔒PoliteCat Discord Bot")
+
+    await interaction.response.send_message(embed=embed, view=HelpButtons())
+
+@bot.tree.command(name="testping", description="Ping test")
+async def testping(interaction: discord.Interaction):
+    await interaction.response.send_message("test-pong!!!")
+
 # ============================
 # 실행
 # ============================
 bot.run(TOKEN)
+
 
 
 
