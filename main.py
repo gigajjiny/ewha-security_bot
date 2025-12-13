@@ -58,8 +58,8 @@ def create_welcome_embed():
         description="안녕하세요. PoliceCat 디스코드 보안 봇입니다. 다양한 도움말은 슬래시 명령어를 사용해주세요!",
         color=0xffc2ef
     )
-    embed.set_thumbnail(url='https://ibb.co/PGhDWpc2')
-    embed.set_image(url='https://ibb.co/PGhDWpc2')
+    embed.set_thumbnail(url='https://i.ibb.co/nMcP127X/Kakao-Talk-20251213-095607027.jpg')
+    embed.set_image(url='https://i.ibb.co/nMcP127X/Kakao-Talk-20251213-095607027.jpg')
 
     embed.set_author(name="🔒PoliteCat Discord Bot")
     embed.add_field(name="🛡️ 악성파일 탐지", value="첨부된 파일이 악성 프로그램을 포함하는지 검사하고 자동으로 차단합니다", inline=True)
@@ -177,6 +177,7 @@ async def testping(interaction: discord.Interaction):
 # 실행
 # ============================
 bot.run(TOKEN)
+
 
 
 
