@@ -58,6 +58,9 @@ def create_welcome_embed():
         description="안녕하세요. PoliceCat 디스코드 보안 봇입니다. 다양한 도움말은 슬래시 명령어를 사용해주세요!",
         color=0xffc2ef
     )
+    embed.set_thumbnail(url='https://ibb.co/PGhDWpc2')
+    embed.set_image(url='https://ibb.co/PGhDWpc2')
+
     embed.set_author(name="🔒PoliteCat Discord Bot")
     embed.add_field(name="🛡️ 악성파일 탐지", value="첨부된 파일이 악성 프로그램을 포함하는지 검사하고 자동으로 차단합니다", inline=True)
     embed.add_field(name="🔗 악성 URL 탐지", value="업로드 된 url이 안전한지 검사합니다", inline=True)
@@ -74,17 +77,17 @@ class HelpButtons(discord.ui.View):
     # 1) 악성파일 탐지 버튼
     @discord.ui.button(label="악성파일 탐지", style=discord.ButtonStyle.primary)
     async def malware_scan(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message("clamAV, YARA 등 다양한 백신API를 활용하여 디스코드에 첨부된 파일이 안전한지 탐지합니다. \n 악성파일이 탐지되었다면 경고 안내 메세지를 출력합니다.", ephemeral=True)
+        await interaction.response.send_message("RabbbitMQ를 이용해 디스코드에 첨부된 파일의 검사 요청을 전달합니다 \n이러한 파일을 ClamAV와 YARA를 통해 검사합니다. \nClamAV와 YARA는 각각 악성코드를 시그니처 기반, 패턴 룰을 기반으로 검사하고 스크립트나 pdf 내의 의심행위를 분석합니다.", ephemeral=True)
 
     # 2) 악성 URL 탐지 버튼
     @discord.ui.button(label="악성 URL 탐지", style=discord.ButtonStyle.success)
     async def url_scan(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message("채팅창에 url 링크를 업로드 할 경우, 해당 링크를 스캔하여 악성 url인지 확인하고 \n 위험할 경우 해당 링크에 대한 경고 메세지를 출력합니다.", ephemeral=True)
+        await interaction.response.send_message("디스코드에 업로드 된 url을 확장하고, 이후 화이트 리스트와 블랙리스트를 통해 위험여부를 판단합니다. \n민감 키워드, 피싱 패턴 분석, Google Safe Browsing API를 통해 url이 안전한지 검사하고 자동으로 데이터베이스에 저장합니다", ephemeral=True)
 
     # 3) 블랙리스트 기능 버튼
     @discord.ui.button(label="블랙리스트 기능", style=discord.ButtonStyle.secondary)
     async def blacklist(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message("멤버 블랙리스트를 관리할 수 있습니다. \n 채팅창에 도배성 메세지를 입력할 경우 채팅 속도가 빠르다는 경고 메세지를 출력합니다. ", ephemeral=True)
+        await interaction.response.send_message("멤버 블랙리스트를 관리할 수 있습니다. \n사용자의 계정 생성일, 메시지 속도, 중복 메시지 여부 멘션 횟수, 채널 이동 패턴 등을 분석해 위험 점수를 부여하고, 자동으로 해당 사용자를 격리시키거나 서버에서 차단합니다.", ephemeral=True)
 
 # ============================
 # Events
@@ -174,6 +177,7 @@ async def testping(interaction: discord.Interaction):
 # 실행
 # ============================
 bot.run(TOKEN)
+
 
 
 
