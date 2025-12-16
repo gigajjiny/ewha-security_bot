@@ -1,7 +1,10 @@
 # security/file_scan.py
+
 import os
 import asyncio
 import tempfile
+import hashlib
+import aiosqlite
 from collections import OrderedDict
 from typing import List, Optional
 
@@ -14,84 +17,98 @@ from .rabbitmq_client import RabbitMQClient
 
 
 class FileScanResult:
-    __slots__ = ("attachment", "is_malicious", "reason")
+    # file_hash 필드 추가
+    __slots__ = ("attachment", "is_malicious", "reason", "file_hash")
 
-    def __init__(self, attachment: discord.Attachment, is_malicious: bool, reason: str = ""):
+    def __init__(self, attachment: discord.Attachment, is_malicious: bool, reason: str = "", file_hash: str = None):
         self.attachment = attachment
         self.is_malicious = is_malicious
         self.reason = reason
+        self.file_hash = file_hash
 
 
 class FileScanner:
-    """
-    - 경량 확장자 필터
-    - ClamAV 실시간 스캔
-    - YARA 룰 스캔
-    - RabbitMQ로 추가 offloading
-    """
-
     def __init__(self, cfg: SecurityConfig):
         self.cfg = cfg
         self.cache_size = cfg.file_cache_size
         self._cache: "OrderedDict[str, FileScanResult]" = OrderedDict()
 
-        self.blocked_extensions = {".exe", ".scr", ".bat", ".cmd", ".js"}
+        self.blocked_extensions = {".exe", ".scr", ".bat", ".cmd", ".js", ".vbs", ".jar"}
 
         self.clamav = ClamAVClient(cfg.clamav_host, cfg.clamav_port) if cfg.enable_clamav else None
         self.yara = YaraClient(cfg.yara_rules_path) if cfg.enable_yara else None
         self.rabbitmq = RabbitMQClient(cfg.rabbitmq_url) if cfg.enable_rabbitmq else None
 
     def _cache_key(self, attachment: discord.Attachment) -> str:
-        return f"{attachment.filename}:{attachment.size}"
+        return f"{attachment.id}_{attachment.filename}"
 
     def _get_from_cache(self, key: str) -> Optional[FileScanResult]:
-        res = self._cache.get(key)
-        if res:
-            self._cache.move_to_end(key)
-        return res
+        if key in self._cache:
+            return self._cache[key]
+        return None
 
-    def _put_to_cache(self, key: str, res: FileScanResult):
-        self._cache[key] = res
-        self._cache.move_to_end(key)
-        if len(self._cache) > self.cache_size:
-            self._cache.popitem(last=False)
+    # 파일 해시 계산
+    def _calculate_file_hash(self, filepath: str) -> str:
+        sha256 = hashlib.sha256()
+        with open(filepath, 'rb') as f:
+            while True:
+                chunk = f.read(8192)
+                if not chunk:
+                    break
+                sha256.update(chunk)
+        return sha256.hexdigest()
 
-    async def _download_to_temp(self, attachment: discord.Attachment) -> str:
-        suffix = os.path.splitext(attachment.filename or "")[1]
-        fd, path = tempfile.mkstemp(suffix=suffix)
-        os.close(fd)
-        await attachment.save(path)
-        return path
+    # DB에서 해시 차단 여부 확인
+    async def _check_hash_in_db(self, file_hash: str) -> Optional[str]:
+        if not self.cfg.enable_sqlite_log:
+            return None
+        
+        async with aiosqlite.connect(self.cfg.sqlite_path) as db:
+            async with db.execute("SELECT reason FROM file_hashes WHERE file_hash = ?", (file_hash,)) as cursor:
+                row = await cursor.fetchone()
+                if row:
+                    return row[0]
+        return None
 
     async def _scan_single_attachment(self, attachment: discord.Attachment) -> FileScanResult:
-        # 0) 확장자 필터
-        filename = (attachment.filename or "").lower()
-        for ext in self.blocked_extensions:
-            if filename.endswith(ext):
-                return FileScanResult(attachment, True, f"차단 확장자({ext})")
-
-        # 1) 파일 다운로드
-        tmp_path = await self._download_to_temp(attachment)
+        # 1) 확장자 필터
+        ext = os.path.splitext(attachment.filename)[1].lower()
+        
+        # 임시 파일 다운로드
+        fd, tmp_path = tempfile.mkstemp(suffix="_" + attachment.filename)
+        os.close(fd)
 
         try:
-            reasons: List[str] = []
+            await attachment.save(tmp_path)
+            
+            # 해시 계산 + 블랙리스트 검사
+            file_hash = await asyncio.to_thread(self._calculate_file_hash, tmp_path)
+            blocked_reason = await self._check_hash_in_db(file_hash)
+            
+            if blocked_reason:
+                return FileScanResult(attachment, True, f"🚫 차단된 파일 재업로드 감지 ({blocked_reason})", file_hash)
+
+            # 3) 확장자 차단
+            if ext in self.blocked_extensions:
+                return FileScanResult(attachment, True, f"차단된 확장자: {ext}", file_hash)
+
+            # 4) ClamAV / YARA 스캔
+            reasons = []
             malicious = False
 
-            # 2) ClamAV
             if self.clamav:
                 is_bad, virus_name = await self.clamav.scan_file(tmp_path)
                 if is_bad:
                     malicious = True
                     reasons.append(f"ClamAV: {virus_name}")
 
-            # 3) YARA
             if self.yara:
                 matches = await self.yara.scan_file(tmp_path)
                 if matches:
                     malicious = True
-                    reasons.append("YARA rules: " + ", ".join(matches))
+                    reasons.append("YARA: " + ", ".join(matches))
 
-            # 4) RabbitMQ offload (비동기 추가 분석용)
+            # 5) RabbitMQ offload
             if self.rabbitmq:
                 await self.rabbitmq.send_task(
                     {
@@ -103,10 +120,9 @@ class FileScanner:
                 )
 
             reason_str = "; ".join(reasons)
-            return FileScanResult(attachment, malicious, reason_str)
+            return FileScanResult(attachment, malicious, reason_str, file_hash)
+
         finally:
-            # ClamAV/YARA 쪽에서 tmp_path를 직접 쓸 수도 있으니
-            # offload용으로 쓰고 싶으면 삭제를 늦추거나 worker에서 처리하게 구조 조정 가능.
             if not self.cfg.enable_rabbitmq:
                 try:
                     os.remove(tmp_path)
@@ -128,7 +144,10 @@ class FileScanner:
 
         for key, task in tasks:
             res = await task
-            self._put_to_cache(key, res)
+            # 캐싱
+            self._cache[key] = res
+            if len(self._cache) > self.cache_size:
+                self._cache.popitem(last=False)
             results.append(res)
 
         return results
